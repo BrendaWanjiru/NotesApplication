@@ -11,7 +11,7 @@ use Illuminate\Support\Str;
 
 class NoteController extends Controller
 {
-     //Display views
+     // Display views
      public function index()
      {
           $user = Auth::user();
@@ -20,14 +20,14 @@ class NoteController extends Controller
           return view('notes.index', compact('user', 'notes', 'useMenu'));
      }
 
-     //Create view
+     // Create view
      public function create()
      {
-          $colors =  Background::all();
+          $colors = Background::all();
           return view('notes.create', compact('colors'));
      }
 
-     //Create note
+     // Create note
      public function store(StoreNote $request)
      {
           $note = Note::create([
@@ -38,31 +38,31 @@ class NoteController extends Controller
                'user_id' => Auth::user()->id
           ]);
 
-          $note->background()->associate($request['background-color']); //Add background
+          $note->background()->associate($request['background-color']); // Add background
           $note->save();
 
           return redirect()->route('notes.show', $note)->with('info', 'Note created successfully');
      }
 
-     //Show note
+     // Show note
      public function show(Note $note)
      {
           $this->authorize('author', $note);
           $user = Auth::user();
-          $colors =  Background::all();
+          $colors = Background::all();
           $edit = true;
           $title = $note->title . ' - Note App';
           return view('notes.show', compact('user', 'note', 'colors', 'edit', 'title'));
      }
 
-     //Show note and display alert
+     // Show note and display alert
      public function showLabelsEdit(Note $note)
      {
           $this->authorize('author', $note);
           return redirect()->route('notes.show', $note)->with('labels_active_event', true);
      }
 
-     //Make a note copy
+     // Make a note copy
      public function makeCopy(Note $note)
      {
           $this->authorize('author', $note);
@@ -75,19 +75,19 @@ class NoteController extends Controller
           return redirect()->route('notes.index')->with('info', 'Note created successfully');
      }
 
-     //Show note. Only edit
+     // Show note. Only edit
      public function showReadOnly(Note $note)
      {
           $this->authorize('author', $note);
 
           $user = Auth::user();
-          $colors =  Background::all();
+          $colors = Background::all();
           $readOnly = true;
           $title = $note->title . ' - Note App';
           return view('notes.show', compact('user', 'note', 'colors', 'readOnly', 'title'));
      }
 
-     //Update note
+     // Update note
      public function update(StoreNote $request, Note $note)
      {
           $this->authorize('author', $note);
@@ -100,7 +100,7 @@ class NoteController extends Controller
           return redirect()->route('notes.show', $note)->with('info', 'Note updated successfully');
      }
 
-     //Delete note
+     // Delete note
      public function destroy(Note $note)
      {
           $this->authorize('author', $note);
@@ -108,7 +108,7 @@ class NoteController extends Controller
           return redirect()->route('notes.trash')->with('info', 'Note deleted successfully');
      }
 
-     //Send note to trash
+     // Send note to trash
      public function sendTrash(Note $note)
      {
           $this->authorize('author', $note);
@@ -117,11 +117,11 @@ class NoteController extends Controller
           return redirect()->route('notes.index')->with('info', 'Note moved to trash');
      }
 
-     //Trash view
+     // Trash view
      public function trash()
      {
           $user = Auth::user();
-          $notes = $user->notes()->where("delete", 1)->orderByDesc('updated_at')->get();
+          $notes = $user->where("delete", 1)->orderByDesc('updated_at')->get();
           $useMenu = true;
           $trash = true;
           $title = 'Trash - Note App';
@@ -129,15 +129,17 @@ class NoteController extends Controller
           return view('notes.index', compact('user', 'notes', 'useMenu', 'trash', 'title'));
      }
 
-     //Empty notes in trash
+     // Empty notes in trash
      public function emptyTrash(Request $request)
      {
           $notes = Auth::user()->notes->where("delete", 1);
           $nNotes = $notes->count();
 
-          if ($nNotes > 0)
-               foreach ($notes as $note)
+          if ($nNotes > 0) {
+               foreach ($notes as $note) {
                     $note->delete();
+               }
+          }
 
           if ($nNotes == 0) {
                $message = "There are no notes";
@@ -145,12 +147,12 @@ class NoteController extends Controller
           }
 
           if ($nNotes == 1) $message = "Note deleted forever";
-          else $message = "Notes Delete forever";
+          else $message = "Notes deleted forever";
 
           return redirect()->route('notes.trash')->with('info', $message);
      }
 
-     //Restore Note
+     // Restore Note
      public function restore(Note $note)
      {
           $this->authorize('author', $note);
@@ -159,7 +161,7 @@ class NoteController extends Controller
           return redirect()->route('notes.trash')->with('info', 'Note restored successfully');
      }
 
-     //search post route
+     // Search post route
      public function search(Request $request)
      {
           $search = $request->search;
@@ -182,8 +184,8 @@ class NoteController extends Controller
           return view('notes.index', compact('user', 'notes', 'useMenu', 'search'));
      }
 
-     //Close tags - funtion to build abstract notes
-     public function closetags($html)
+     // Close tags - function to build abstract notes
+     protected function closetags($html)
      {
           preg_match_all('#<(?!meta|img|br|hr|input\b)\b([a-z]+)(?: .*)?(?<![/|/ ])>#iU', $html, $result);
           $openedtags = $result[1];
